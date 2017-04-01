@@ -1,4 +1,4 @@
-var map, featureList, /*boroughSearch = [],*/ /*theaterSearch = [],*/ busstopSearch = [], museumSearch = [], constituenciesSearch = [];
+var map, featureList, /*boroughSearch = [],*/ /*theaterSearch = [],*/ busstopSearch = [], museumSearch = [], /*constituenciesSearch = []*/ buildingsSearch = [];
 
 $(window).resize(function() {
   sizeLayerControl();
@@ -30,7 +30,7 @@ $("#about-btn").click(function() {
 });*/
 
 $("#full-extent-btn").click(function() {
-  map.fitBounds(constituencies.getBounds());
+  map.fitBounds(buildings.getBounds());
   $(".navbar-collapse.in").collapse("hide");
   return false;
 });
@@ -155,7 +155,7 @@ var highlightStyle = {
   radius: 10
 };
 
-var constituencies = L.geoJson(null, {
+/*var constituencies = L.geoJson(null, {
   style: function (feature) {
     return {
       color: "black",
@@ -172,9 +172,29 @@ var constituencies = L.geoJson(null, {
       bounds: layer.getBounds()
     });
   }
+});*/
+
+var buildings = L.geoJson(null, {
+  style: function (feature) {
+    return {
+      color: "blue",
+      fill: false,
+      opacity: 1,
+      clickable: false
+    };
+  },
+  onEachFeature: function (feature, layer) {
+    buildingsSearch.push({
+      name: layer.feature.properties.ESTATE,
+      source: "Buildings",
+      id: L.stamp(layer),
+      bounds: layer.getBounds()
+    });
+  }
 });
-$.getJSON("data/constituencies.geojson", function (data) {
-  constituencies.addData(data);
+
+$.getJSON("data/buildings.geojson", function (data) {
+  buildings.addData(data);
 });
 
 //Create a color dictionary based off of subway route_id
@@ -339,7 +359,7 @@ $.getJSON("data/DOITT_MUSEUM_01_13SEPT2010.geojson", function (data) {
 map = L.map("map", {
   zoom: 10,
   center: [36.833653, -1.294159],
-  layers: [cartoLight, constituencies, markerClusters, highlight],
+  layers: [cartoLight, buildings, markerClusters, highlight],
   zoomControl: false,
   attributionControl: false
 });
@@ -452,7 +472,7 @@ var groupedOverlays = {
     "<img src='assets/img/museum.png' width='24' height='28'>&nbsp;Museums": museumLayer
   },
   "Reference": {
-    "Constituencies": constituencies,
+    "Buildings": buildings,
     "Subway Lines": subwayLines
   }
 };
@@ -482,17 +502,17 @@ $(document).one("ajaxStop", function () {
   $("#loading").hide();
   sizeLayerControl();
   /* Fit map to constituencies bounds */
-  map.fitBounds(constituencies.getBounds());
+  map.fitBounds(buildings.getBounds());
   featureList = new List("features", {valueNames: ["feature-name"]});
   featureList.sort("feature-name", {order:"asc"});
 
-  var constituenciesBH = new Bloodhound({
-    name: "Constituencies",
+  var buildingsBH = new Bloodhound({
+    name: "Buildings",
     datumTokenizer: function (d) {
       return Bloodhound.tokenizers.whitespace(d.name);
     },
     queryTokenizer: Bloodhound.tokenizers.whitespace,
-    local: constituenciesSearch,
+    local: buildingsSearch,
     limit: 10
   });
 
@@ -546,7 +566,7 @@ $(document).one("ajaxStop", function () {
     },
     limit: 10
   });
-  constituenciesBH.initialize();
+  buildingsBH.initialize();
   busstopsBH.initialize();
   museumsBH.initialize();
   geonamesBH.initialize();
@@ -557,11 +577,11 @@ $(document).one("ajaxStop", function () {
     highlight: true,
     hint: false
   }, {
-    name: "Constituencies",
+    name: "Buildings",
     displayKey: "name",
-    source: constituenciesBH.ttAdapter(),
+    source: buildingsBH.ttAdapter(),
     templates: {
-      header: "<h4 class='typeahead-header'>Constituencies</h4>"
+      header: "<h4 class='typeahead-header'>Buildings</h4>"
     }
   }, {
     name: "Busstops",
@@ -587,7 +607,7 @@ $(document).one("ajaxStop", function () {
       header: "<h4 class='typeahead-header'><img src='assets/img/globe.png' width='25' height='25'>&nbsp;GeoNames</h4>"
     }
   }).on("typeahead:selected", function (obj, datum) {
-    if (datum.source === "Constituencies") {
+    if (datum.source === "Buildings") {
       map.fitBounds(datum.bounds);
     }
     if (datum.source === "Busstops") {
