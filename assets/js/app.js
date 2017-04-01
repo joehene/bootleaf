@@ -1,4 +1,4 @@
-var map, featureList, boroughSearch = [], theaterSearch = [], museumSearch = [];
+var map, featureList, /*boroughSearch = [],*/ /*theaterSearch = [],*/ busstopSearch = [], museumSearch = [], constituenciesSearch = [];
 
 $(window).resize(function() {
   sizeLayerControl();
@@ -23,8 +23,14 @@ $("#about-btn").click(function() {
   return false;
 });
 
-$("#full-extent-btn").click(function() {
+/*$("#full-extent-btn").click(function() {
   map.fitBounds(boroughs.getBounds());
+  $(".navbar-collapse.in").collapse("hide");
+  return false;
+});*/
+
+$("#full-extent-btn").click(function() {
+  map.fitBounds(constituencies.getBounds());
   $(".navbar-collapse.in").collapse("hide");
   return false;
 });
@@ -92,10 +98,18 @@ function syncSidebar() {
   /* Empty sidebar features */
   $("#feature-list tbody").empty();
   /* Loop through theaters layer and add only features which are in the map bounds */
-  theaters.eachLayer(function (layer) {
+  /*theaters.eachLayer(function (layer) {
     if (map.hasLayer(theaterLayer)) {
       if (map.getBounds().contains(layer.getLatLng())) {
         $("#feature-list tbody").append('<tr class="feature-row" id="' + L.stamp(layer) + '" lat="' + layer.getLatLng().lat + '" lng="' + layer.getLatLng().lng + '"><td style="vertical-align: middle;"><img width="16" height="18" src="assets/img/theater.png"></td><td class="feature-name">' + layer.feature.properties.NAME + '</td><td style="vertical-align: middle;"><i class="fa fa-chevron-right pull-right"></i></td></tr>');
+      }
+    }
+  });*/
+
+  busstops.eachLayer(function (layer) {
+    if (map.hasLayer(busstopLayer)) {
+      if (map.getBounds().contains(layer.getLatLng())) {
+        $("#feature-list tbody").append('<tr class="feature-row" id="' + L.stamp(layer) + '" lat="' + layer.getLatLng().lat + '" lng="' + layer.getLatLng().lng + '"><td style="vertical-align: middle;"><img width="16" height="18" src="assets/img/theater.png"></td><td class="feature-name">' + layer.feature.properties.stop_name + '</td><td style="vertical-align: middle;"><i class="fa fa-chevron-right pull-right"></i></td></tr>');
       }
     }
   });
@@ -141,7 +155,7 @@ var highlightStyle = {
   radius: 10
 };
 
-var boroughs = L.geoJson(null, {
+var constituencies = L.geoJson(null, {
   style: function (feature) {
     return {
       color: "black",
@@ -151,16 +165,16 @@ var boroughs = L.geoJson(null, {
     };
   },
   onEachFeature: function (feature, layer) {
-    boroughSearch.push({
-      name: layer.feature.properties.BoroName,
-      source: "Boroughs",
+    constituenciesSearch.push({
+      name: layer.feature.properties.SUBURB,
+      source: "Constituencies",
       id: L.stamp(layer),
       bounds: layer.getBounds()
     });
   }
 });
-$.getJSON("data/boroughs.geojson", function (data) {
-  boroughs.addData(data);
+$.getJSON("data/constituencies.geojson", function (data) {
+  constituencies.addData(data);
 });
 
 //Create a color dictionary based off of subway route_id
@@ -222,7 +236,7 @@ var markerClusters = new L.MarkerClusterGroup({
 });
 
 /* Empty layer placeholder to add to layer control for listening when to add/remove theaters to markerClusters layer */
-var theaterLayer = L.geoJson(null);
+/*var theaterLayer = L.geoJson(null);
 var theaters = L.geoJson(null, {
   pointToLayer: function (feature, latlng) {
     return L.marker(latlng, {
@@ -235,7 +249,23 @@ var theaters = L.geoJson(null, {
       title: feature.properties.NAME,
       riseOnHover: true
     });
+  },*/
+
+var busstopLayer = L.geoJson(null);
+var busstops = L.geoJson(null, {
+  pointToLayer: function (feature, latlng) {
+    return L.marker(latlng, {
+      icon: L.icon({
+        iconUrl: "assets/img/theater.png",
+        iconSize: [24, 28],
+        iconAnchor: [12, 28],
+        popupAnchor: [0, -25]
+      }),
+      title: feature.properties.stop_name,
+      riseOnHover: true
+    });
   },
+
   onEachFeature: function (feature, layer) {
     if (feature.properties) {
       var content = "<table class='table table-striped table-bordered table-condensed'>" + "<tr><th>Name</th><td>" + feature.properties.NAME + "</td></tr>" + "<tr><th>Phone</th><td>" + feature.properties.TEL + "</td></tr>" + "<tr><th>Address</th><td>" + feature.properties.ADDRESS1 + "</td></tr>" + "<tr><th>Website</th><td><a class='url-break' href='" + feature.properties.URL + "' target='_blank'>" + feature.properties.URL + "</a></td></tr>" + "<table>";
@@ -247,11 +277,11 @@ var theaters = L.geoJson(null, {
           highlight.clearLayers().addLayer(L.circleMarker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], highlightStyle));
         }
       });
-      $("#feature-list tbody").append('<tr class="feature-row" id="' + L.stamp(layer) + '" lat="' + layer.getLatLng().lat + '" lng="' + layer.getLatLng().lng + '"><td style="vertical-align: middle;"><img width="16" height="18" src="assets/img/theater.png"></td><td class="feature-name">' + layer.feature.properties.NAME + '</td><td style="vertical-align: middle;"><i class="fa fa-chevron-right pull-right"></i></td></tr>');
-      theaterSearch.push({
-        name: layer.feature.properties.NAME,
-        address: layer.feature.properties.ADDRESS1,
-        source: "Theaters",
+      $("#feature-list tbody").append('<tr class="feature-row" id="' + L.stamp(layer) + '" lat="' + layer.getLatLng().lat + '" lng="' + layer.getLatLng().lng + '"><td style="vertical-align: middle;"><img width="16" height="18" src="assets/img/theater.png"></td><td class="feature-name">' + layer.feature.properties.stop_name + '</td><td style="vertical-align: middle;"><i class="fa fa-chevron-right pull-right"></i></td></tr>');
+      busstopSearch.push({
+        name: layer.feature.properties.stop_name,
+        address: layer.feature.properties.route_1,
+        source: "Busstops",
         id: L.stamp(layer),
         lat: layer.feature.geometry.coordinates[1],
         lng: layer.feature.geometry.coordinates[0]
@@ -259,9 +289,9 @@ var theaters = L.geoJson(null, {
     }
   }
 });
-$.getJSON("data/DOITT_THEATER_01_13SEPT2010.geojson", function (data) {
-  theaters.addData(data);
-  map.addLayer(theaterLayer);
+$.getJSON("data/busstops.geojson", function (data) {
+  busstops.addData(data);
+  map.addLayer(busstopLayer);
 });
 
 /* Empty layer placeholder to add to layer control for listening when to add/remove museums to markerClusters layer */
@@ -308,16 +338,16 @@ $.getJSON("data/DOITT_MUSEUM_01_13SEPT2010.geojson", function (data) {
 
 map = L.map("map", {
   zoom: 10,
-  center: [40.702222, -73.979378],
-  layers: [cartoLight, boroughs, markerClusters, highlight],
+  center: [36.833653, -1.294159],
+  layers: [cartoLight, constituencies, markerClusters, highlight],
   zoomControl: false,
   attributionControl: false
 });
 
 /* Layer control listeners that allow for a single markerClusters layer */
 map.on("overlayadd", function(e) {
-  if (e.layer === theaterLayer) {
-    markerClusters.addLayer(theaters);
+  if (e.layer === busstopLayer) {
+    markerClusters.addLayer(busstops);
     syncSidebar();
   }
   if (e.layer === museumLayer) {
@@ -327,8 +357,8 @@ map.on("overlayadd", function(e) {
 });
 
 map.on("overlayremove", function(e) {
-  if (e.layer === theaterLayer) {
-    markerClusters.removeLayer(theaters);
+  if (e.layer === busstopLayer) {
+    markerClusters.removeLayer(busstops);
     syncSidebar();
   }
   if (e.layer === museumLayer) {
@@ -418,11 +448,11 @@ var baseLayers = {
 
 var groupedOverlays = {
   "Points of Interest": {
-    "<img src='assets/img/theater.png' width='24' height='28'>&nbsp;Theaters": theaterLayer,
+    "<img src='assets/img/theater.png' width='24' height='28'>&nbsp;Theaters": busstopLayer,
     "<img src='assets/img/museum.png' width='24' height='28'>&nbsp;Museums": museumLayer
   },
   "Reference": {
-    "Boroughs": boroughs,
+    "Constituencies": constituencies,
     "Subway Lines": subwayLines
   }
 };
@@ -451,28 +481,28 @@ $("#featureModal").on("hidden.bs.modal", function (e) {
 $(document).one("ajaxStop", function () {
   $("#loading").hide();
   sizeLayerControl();
-  /* Fit map to boroughs bounds */
-  map.fitBounds(boroughs.getBounds());
+  /* Fit map to constituencies bounds */
+  map.fitBounds(constituencies.getBounds());
   featureList = new List("features", {valueNames: ["feature-name"]});
   featureList.sort("feature-name", {order:"asc"});
 
-  var boroughsBH = new Bloodhound({
-    name: "Boroughs",
+  var constituenciesBH = new Bloodhound({
+    name: "Constituencies",
     datumTokenizer: function (d) {
       return Bloodhound.tokenizers.whitespace(d.name);
     },
     queryTokenizer: Bloodhound.tokenizers.whitespace,
-    local: boroughSearch,
+    local: constituenciesSearch,
     limit: 10
   });
 
-  var theatersBH = new Bloodhound({
-    name: "Theaters",
+  var busstopsBH = new Bloodhound({
+    name: "Busstops",
     datumTokenizer: function (d) {
       return Bloodhound.tokenizers.whitespace(d.name);
     },
     queryTokenizer: Bloodhound.tokenizers.whitespace,
-    local: theaterSearch,
+    local: busstopSearch,
     limit: 10
   });
 
@@ -516,8 +546,8 @@ $(document).one("ajaxStop", function () {
     },
     limit: 10
   });
-  boroughsBH.initialize();
-  theatersBH.initialize();
+  constituenciesBH.initialize();
+  busstopsBH.initialize();
   museumsBH.initialize();
   geonamesBH.initialize();
 
@@ -527,18 +557,18 @@ $(document).one("ajaxStop", function () {
     highlight: true,
     hint: false
   }, {
-    name: "Boroughs",
+    name: "Constituencies",
     displayKey: "name",
-    source: boroughsBH.ttAdapter(),
+    source: constituenciesBH.ttAdapter(),
     templates: {
-      header: "<h4 class='typeahead-header'>Boroughs</h4>"
+      header: "<h4 class='typeahead-header'>Constituencies</h4>"
     }
   }, {
-    name: "Theaters",
+    name: "Busstops",
     displayKey: "name",
-    source: theatersBH.ttAdapter(),
+    source: busstopsBH.ttAdapter(),
     templates: {
-      header: "<h4 class='typeahead-header'><img src='assets/img/theater.png' width='24' height='28'>&nbsp;Theaters</h4>",
+      header: "<h4 class='typeahead-header'><img src='assets/img/theater.png' width='24' height='28'>&nbsp;Busstops</h4>",
       suggestion: Handlebars.compile(["{{name}}<br>&nbsp;<small>{{address}}</small>"].join(""))
     }
   }, {
@@ -557,12 +587,12 @@ $(document).one("ajaxStop", function () {
       header: "<h4 class='typeahead-header'><img src='assets/img/globe.png' width='25' height='25'>&nbsp;GeoNames</h4>"
     }
   }).on("typeahead:selected", function (obj, datum) {
-    if (datum.source === "Boroughs") {
+    if (datum.source === "Constituencies") {
       map.fitBounds(datum.bounds);
     }
-    if (datum.source === "Theaters") {
-      if (!map.hasLayer(theaterLayer)) {
-        map.addLayer(theaterLayer);
+    if (datum.source === "Busstops") {
+      if (!map.hasLayer(busstopLayer)) {
+        map.addLayer(busstopLayer);
       }
       map.setView([datum.lat, datum.lng], 17);
       if (map._layers[datum.id]) {
